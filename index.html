@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f241f">
+<title>세븐원더스 듀얼 점수표</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+      radial-gradient(circle at top, rgba(255,255,255,.08), transparent 35%),
+      #1f241f;
+    color: #fff;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  main {
+    width: min(100%, 680px);
+  }
+  h1 {
+    margin: 0 0 8px;
+    text-align: center;
+    font-size: clamp(26px, 5vw, 40px);
+  }
+  .subtitle {
+    margin: 0 0 28px;
+    text-align: center;
+    color: rgba(255,255,255,.72);
+    font-size: 15px;
+  }
+  .menu {
+    display: grid;
+    gap: 14px;
+  }
+  .card {
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    align-items: center;
+    gap: 16px;
+    min-height: 96px;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 18px;
+    background: rgba(255,255,255,.09);
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,.22);
+    backdrop-filter: blur(8px);
+    transition: transform .12s ease, background .12s ease;
+  }
+  .card:active {
+    transform: scale(.985);
+    background: rgba(255,255,255,.14);
+  }
+  .icon {
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: rgba(255,255,255,.94);
+    color: #111;
+    font-size: 30px;
+    font-weight: 900;
+  }
+  .title {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 22px;
+    font-weight: 900;
+  }
+  .desc {
+    display: block;
+    color: rgba(255,255,255,.68);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .arrow {
+    font-size: 28px;
+    color: rgba(255,255,255,.7);
+  }
+  footer {
+    margin-top: 24px;
+    text-align: center;
+    color: rgba(255,255,255,.45);
+    font-size: 12px;
+  }
+  @media (max-width: 480px) {
+    body { padding: 16px; }
+    .card {
+      grid-template-columns: 52px 1fr auto;
+      min-height: 84px;
+      padding: 15px;
+      gap: 13px;
+    }
+    .icon { width: 52px; height: 52px; font-size: 24px; }
+    .title { font-size: 19px; }
+    .desc { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>세븐원더스 듀얼 점수표</h1>
+  <p class="subtitle">사용할 점수표를 선택하세요.</p>
+
+  <nav class="menu" aria-label="점수표 선택">
+    <a class="card" href="1.html">
+      <span class="icon">7</span>
+      <span>
+        <span class="title">기본판</span>
+        <span class="desc">세븐원더스 듀얼 기본 점수표</span>
+      </span>
+      <span class="arrow">›</span>
+    </a>
+
+    <a class="card" href="2.html">
+      <span class="icon">P</span>
+      <span>
+        <span class="title">판테온 확장</span>
+        <span class="desc">판테온 추가 점수 항목 포함</span>
+      </span>
+      <span class="arrow">›</span>
+    </a>
+
+    <a class="card" href="3.html">
+      <span class="icon">A</span>
+      <span>
+        <span class="title">아고라 확장</span>
+        <span class="desc">정치 점수와 정치 승리 항목 포함</span>
+      </span>
+      <span class="arrow">›</span>
+    </a>
+  </nav>
+
+  <footer>점수표에서 브라우저 뒤로가기를 누르면 이 화면으로 돌아옵니다.</footer>
+</main>
+</body>
+</html>
