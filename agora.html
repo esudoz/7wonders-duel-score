@@ -125,7 +125,7 @@
   .control {
     width: 93%;
     display: grid;
-    grid-template-columns: 44px minmax(54px, 1fr) 44px;
+    grid-template-columns: 44px 0 minmax(54px, 1fr) 0 44px;
     gap: 3px;
     align-items: center;
   }
@@ -145,6 +145,10 @@
   .control button:active {
     transform: translateY(1px) scale(.98);
   }
+  .control button.step-one {
+    display: none;
+  }
+
   .score {
     width: 100%;
     min-width: 0;
@@ -234,10 +238,111 @@
     color: #111;
   }
 
+  .keypad-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0,0,0,.42);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .18s ease, visibility .18s ease;
+  }
+  .keypad-backdrop.open {
+    opacity: 1;
+    visibility: visible;
+  }
+  .score-keypad {
+    position: fixed;
+    z-index: 101;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 10px 14px calc(14px + env(safe-area-inset-bottom));
+    border-radius: 22px 22px 0 0;
+    background: #f5f1e8;
+    color: #111;
+    box-shadow: 0 -10px 30px rgba(0,0,0,.3);
+    transform: translateY(105%);
+    transition: transform .2s ease;
+  }
+  .score-keypad.open {
+    transform: translateY(0);
+  }
+  .keypad-handle {
+    width: 42px;
+    height: 5px;
+    margin: 0 auto 10px;
+    border-radius: 999px;
+    background: #aaa;
+  }
+  .keypad-title {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #555;
+  }
+  .keypad-value {
+    margin: 2px 0 12px;
+    text-align: center;
+    font-size: 42px;
+    line-height: 1.1;
+    font-weight: 950;
+  }
+  .keypad-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 9px;
+  }
+  .keypad-buttons button {
+    min-height: 58px;
+    border: 2px solid #111;
+    border-radius: 13px;
+    background: #fff;
+    color: #111;
+    font-size: 22px;
+    font-weight: 900;
+    touch-action: manipulation;
+  }
+  .keypad-buttons button:active {
+    transform: scale(.97);
+    background: #e9e9e9;
+  }
+  .keypad-close {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 10px;
+    border: 0;
+    border-radius: 12px;
+    background: #222;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 850;
+  }
+  .score.mobile-selected {
+    outline: 4px solid #ffbf00;
+    outline-offset: 2px;
+  }
+
   @media (max-width: 560px) {
     .control {
+      width: 70%;
+      grid-template-columns: 1fr !important;
+      gap: 0;
+    }
+    .control button {
+      display: none !important;
+    }
+    .score {
+      width: 100%;
+      height: 42px;
+      font-size: 22px;
+      cursor: pointer;
+      caret-color: transparent;
+    }
+    .control button.step-one { display: block; }
+    .control {
       width: 96%;
-      grid-template-columns: 34px minmax(44px, 1fr) 34px;
+      grid-template-columns: 34px 30px minmax(44px, 1fr) 30px 34px;
       gap: 2px;
     }
     .control button {
@@ -299,6 +404,20 @@
     </section>
   </main>
 
+  <div class="keypad-backdrop" id="keypadBackdrop"></div>
+  <section class="score-keypad" id="scoreKeypad" aria-hidden="true">
+    <div class="keypad-handle"></div>
+    <div class="keypad-title" id="keypadTitle">점수 입력</div>
+    <div class="keypad-value" id="keypadValue">0</div>
+    <div class="keypad-buttons">
+      <button type="button" data-delta="-3">-3</button>
+      <button type="button" data-delta="-1">-1</button>
+      <button type="button" data-delta="1">+1</button>
+      <button type="button" data-delta="3">+3</button>
+    </div>
+    <button class="keypad-close" id="keypadClose" type="button">완료</button>
+  </section>
+
 <script>
   const rowCount = 10;
   const scores = Array.from({ length: 2 }, () => Array(rowCount).fill(0));
@@ -311,10 +430,11 @@
     const control = document.createElement("div");
     control.className = "control";
 
-    [-3].forEach(delta => {
+    [-3, -1].forEach(delta => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.textContent = String(delta);
+      if (Math.abs(delta) === 1) btn.classList.add("step-one");
       btn.setAttribute("aria-label", `플레이어 ${player + 1}, ${row + 1}행 ${delta}점`);
       btn.addEventListener("click", () => change(player, row, delta));
       control.appendChild(btn);
@@ -327,6 +447,13 @@
     input.min = "0";
     input.value = "0";
     input.id = `score-${player}-${row}`;
+    input.addEventListener("click", (event) => {
+      if (mobileQuery.matches) {
+        event.preventDefault();
+        input.blur();
+        openKeypad(player, row);
+      }
+    });
     input.addEventListener("input", () => {
       const n = Number.parseInt(input.value, 10);
       scores[player][row] = Number.isFinite(n) ? Math.max(0, n) : 0;
@@ -335,10 +462,11 @@
     });
     control.appendChild(input);
 
-    [3].forEach(delta => {
+    [1, 3].forEach(delta => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.textContent = `+${delta}`;
+      if (Math.abs(delta) === 1) btn.classList.add("step-one");
       btn.setAttribute("aria-label", `플레이어 ${player + 1}, ${row + 1}행 +${delta}점`);
       btn.addEventListener("click", () => change(player, row, delta));
       control.appendChild(btn);
@@ -403,7 +531,70 @@
     });
   });
 
+
+  const mobileQuery = window.matchMedia("(max-width: 560px)");
+  const keypadBackdrop = document.getElementById("keypadBackdrop");
+  const scoreKeypad = document.getElementById("scoreKeypad");
+  const keypadTitle = document.getElementById("keypadTitle");
+  const keypadValue = document.getElementById("keypadValue");
+  const keypadClose = document.getElementById("keypadClose");
+  let activeScore = null;
+
+  function playerDisplayName(player) {
+    const field = player === 0 ? playerName1 : playerName2;
+    return field.value.trim() || `플레이어 ${player + 1}`;
+  }
+
+  function syncMobileInputs() {
+    document.querySelectorAll(".score").forEach(input => {
+      input.readOnly = mobileQuery.matches;
+      input.inputMode = mobileQuery.matches ? "none" : "numeric";
+    });
+  }
+
+  function openKeypad(player, row) {
+    if (!mobileQuery.matches) return;
+    activeScore = { player, row };
+    document.querySelectorAll(".score.mobile-selected").forEach(el => el.classList.remove("mobile-selected"));
+    const input = document.getElementById(`score-${player}-${row}`);
+    input.classList.add("mobile-selected");
+    keypadTitle.textContent = `${playerDisplayName(player)} · ${row + 1}번째 항목`;
+    keypadValue.textContent = scores[player][row];
+    keypadBackdrop.classList.add("open");
+    scoreKeypad.classList.add("open");
+    scoreKeypad.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeKeypad() {
+    keypadBackdrop.classList.remove("open");
+    scoreKeypad.classList.remove("open");
+    scoreKeypad.setAttribute("aria-hidden", "true");
+    document.querySelectorAll(".score.mobile-selected").forEach(el => el.classList.remove("mobile-selected"));
+    activeScore = null;
+    document.body.style.overflow = "";
+  }
+
+  document.querySelectorAll(".keypad-buttons button").forEach(button => {
+    button.addEventListener("click", () => {
+      if (!activeScore) return;
+      const delta = Number(button.dataset.delta);
+      change(activeScore.player, activeScore.row, delta);
+      keypadValue.textContent = scores[activeScore.player][activeScore.row];
+      navigator.vibrate?.(15);
+    });
+  });
+
+  keypadBackdrop.addEventListener("click", closeKeypad);
+  keypadClose.addEventListener("click", closeKeypad);
+  mobileQuery.addEventListener?.("change", () => {
+    syncMobileInputs();
+    if (!mobileQuery.matches) closeKeypad();
+  });
+  syncMobileInputs();
+
   document.getElementById("resetBtn").addEventListener("click", () => {
+    closeKeypad();
     for (let p = 0; p < 2; p++) {
       for (let r = 0; r < rowCount; r++) {
         scores[p][r] = 0;
